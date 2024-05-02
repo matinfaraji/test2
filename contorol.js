@@ -1,113 +1,79 @@
 const mongoose = require("mongoose");
 const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const router = require("express").Router();
 require("dotenv").config();
-const cors = require("cors")
 const PORT = process.env.APP_PORT || 5000;
 const app = express();
-const Schema = mongoose.Schema;
-const bodyParser = require("body-parser")
-app.use(express.json(), bodyParser.text(), cors());
+// https://www.tutorialsteacher.com/sqlserver/tables-relations
 
-const data = [
-  {
-    name: "Nagesh",
-    age: 35,
-    gender: "M",
-    exp: 9,
-    type: "Full Time",
-    qualification: "Ph.D",
-  },
-  {
-    name: "Latha",
-    age: 40,
-    gender: "F",
-    exp: 13,
-    type: "Full Time",
-    qualification: "Ph.D",
-  },
-];
+app.use(express.json());
+app.use(bodyParser.text());
+app.use(cors());
 
-// Define the schema for Faculty members
-const facultySchema = new Schema({
-  Name: {
-    type: String,
-    required: true,
-  },
-  Age: {
-    type: Number,
-    required: true,
-  },
-  gender: {
-    type: String,
-  },
-  exp: {
-    type: Number,
-  },
-  type: {
-    type: String,
-  },
-  qualification: {
-    type: String,
-  },
-});
-
-// Create a model based on the schema
-const Faculty = mongoose.model("Faculty", facultySchema);
-
-
-
-
-// const createFacultyMember = async (req, res) => {
-//     try {
-//       const newFacultyMember = req.body;
-//       const faculty = await Faculty.create(newFacultyMember);
-//       res.status(201).json({ ok: true, faculty });
-//       console.log("ok");
-//     } catch (error) {
-//         console.log(object);
-//       console.log(error);
-//       res.status(500).json({ message: "Internal Server Error" });
-//     }
-//   };
-  const getAllTasks = async (req, res) => {
-    try {
-      const datas = await data.find();
-      res.status(200).json(datas);
-      console.log(datas);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Internal Error Server." });
-    }
-  };
-  router.get("/get",   (req, res) => {
-    try {
-      const datas =  data.find();
-      res.status(200).json(datas);
-      console.log(datas);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Internal Error Server." });
-    }
-  });
-
-router.post("/new", (req, res) => {
-    const newFacultyMember = req.body;
-         const faculty =  Faculty.create(newFacultyMember);
-         res.status(201).json({ ok: true, faculty });
-         console.log("ok");});
-
-
-const connection =async (uri) => {
-  return await mongoose.connect(uri);
+// const data = [
+//   {
+//     name: "Nagesh",
+//     age: 35,
+//     gender: "M",
+//     exp: 9,
+//     type: "Full Time",
+//     qualification: "Ph.D",
+//   },
+//   {
+//     name: "Latha",
+//     age: 40,
+//     gender: "F",
+//     exp: 13,
+//     type: "Full Time",
+//     qualification: "Ph.D",
+//   },
+// ];
+const connection = async (uri) => {
+  try {
+    await mongoose.connect(uri, {});
+    console.log("Connected to database ✅");
+  } catch (error) {
+    console.error(error);
+  }
 };
 
-connection(process.env.URL).then(() => {
-  console.log("connected to database ✅");
+connection(process.env.URL);
+const facultySchema = new mongoose.Schema({
+  name: String,
+  age: Number,
+  gender: String,
+  exp: Number,
+  type: String,
+  qualification: String,
 });
-app.use(express.json());
-app.use("/api", router);
+
+const Faculty = mongoose.model("Faculty", facultySchema);
+
+// Get all faculty members
+app.get("/api/faculty", async (req, res) => {
+  try {
+    const faculties = await Faculty.find();
+    res.status(200).json(faculties);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Create a new faculty member
+app.post("/api/faculty", async (req, res) => {
+  try {
+    const newFacultyMember = req.body;
+    const faculty = await Faculty.create(newFacultyMember);
+    res.status(201).json({ ok: true, faculty });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
